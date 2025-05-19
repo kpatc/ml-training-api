@@ -1,2 +1,6 @@
 jee/
 results/
+__pycache__/
+app_routes/__pycache__/
+services/__pycache__/
+storage/
