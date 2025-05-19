@@ -1,9 +1,0 @@
-{
-  "task": "similarity",
-  "learning_rate": 2e-05,
-  "epochs": 8,
-  "batch_size": 16,
-  "user": "admin",
-  "dataset_id": 2,
-  "timestamp": "2025-05-19T22:52:36.966959"
-}
