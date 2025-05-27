@@ -13,6 +13,18 @@ from services.runner import run_training, run_testing,load_training_history,load
 router = APIRouter()
 clients = []
 
+# Ajouter cette fonction helper avant le endpoint
+def get_next_dataset_id():
+    datasets_dir = "storage/datasets"
+    if not os.path.exists(datasets_dir):
+        os.makedirs(datasets_dir)
+        return "1"
+    
+    existing_ids = [int(d) for d in os.listdir(datasets_dir) 
+                   if os.path.isdir(os.path.join(datasets_dir, d)) 
+                   and d.isdigit()]
+    return str(max(existing_ids + [0]) + 1)
+
 #endpoint to send logs to the client in real time
 @router.websocket("/logs/stream")
 async def stream_logs(websocket: WebSocket):
@@ -32,8 +44,8 @@ async def upload_full_dataset(
     epochs: int = Form(...),
     batch_size: int = Form(...),
     user: str = Form("admin"),
-    dataset_id: int = Form(...)
 ):
+    dataset_id = get_next_dataset_id()
     content = await file.read()
     df = pd.read_csv(io.StringIO(content.decode("utf-8")))
 
@@ -66,8 +78,7 @@ async def upload_full_dataset(
 
     return {
         "message": " Train params  and datasets send sucessfully for training task .",
-        "train file":train_path,
-        "test file": test_path
+        "datasetId": dataset_id,
 
     }
 
