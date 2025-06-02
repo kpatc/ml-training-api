@@ -14,6 +14,7 @@ parser.add_argument('--epochs', type=int)  # not used but kept for compatibility
 parser.add_argument('--batch', type=int)   # same
 parser.add_argument('--data', type=str)
 parser.add_argument('--dataset_id', type=int)
+parser.add_argument('--project_name', type=str)
 parser.add_argument('--task', type=str, choices=['similarity', 'inference'], default='similarity')
 args = parser.parse_args()
 
@@ -61,7 +62,7 @@ report = classification_report(y_val, y_pred, output_dict=True)
 
 # --------- STEP 7: Saving Model ---------
 print(json.dumps({"log": "Saving model and vectorizer..."}))
-save_path = f"storage/model/{args.dataset_id}/"
+save_path = f"storage/model/{args.project_name}/{args.dataset_id}/"
 os.makedirs(save_path, exist_ok=True)
 joblib.dump(model, os.path.join(save_path, 'model.pkl'))
 joblib.dump(vectorizer, os.path.join(save_path, 'vectorizer.pkl'))

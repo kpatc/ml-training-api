@@ -19,9 +19,9 @@ def extract_metrics_from_stdout(stdout: str):
             continue
     return {"accuracy": None, "f1_score": None}
 
-async def run_training(dataset_id: str,log_callback: Optional[Callable[[str], None]] = None):
-    config_path = f"storage/datasets/{dataset_id}/config.json"
-    train_file_path = f"storage/datasets/{dataset_id}/train.csv"
+async def run_training(dataset_id: str,project_name:str, log_callback: Optional[Callable[[str], None]] = None):
+    config_path = f"storage/datasets/{project_name}/{dataset_id}/config.json"
+    train_file_path = f"storage/datasets/{project_name}/{dataset_id}/train.csv"
 
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file not found for dataset {dataset_id}")
@@ -43,7 +43,8 @@ async def run_training(dataset_id: str,log_callback: Optional[Callable[[str], No
         "--batch", str(config["batch_size"]),
         "--task", str(config["task"]),
         "--data", train_file_path,
-        "--dataset_id", str(dataset_id)
+        "--dataset_id", str(dataset_id),
+        "--project_name", project_name
     ]
 
     stdout_lines = []
@@ -59,29 +60,29 @@ async def run_training(dataset_id: str,log_callback: Optional[Callable[[str], No
     entry = {
         "timestamp": datetime.now().isoformat(),
         "user": config["user"],
-        "dataset_id": dataset_id,
+        "project_name": project_name,
         "command": " ".join(cmd),
         "stdout": stdout_text,
         "stderr": "",
         "metrics": metrics
     }
 
-    history_dir = f"storage/train/history/{dataset_id}"
+    history_dir = f"storage/train/history/{project_name}/{dataset_id}"
     os.makedirs(history_dir, exist_ok=True)
     with open(os.path.join(history_dir, "history.json"), "w") as f:
         f.write(json.dumps(entry) + "\n")
 
-    save_path = f"storage/model/{dataset_id}"
+    save_path = f"storage/model/{project_name}/{dataset_id}"
     os.makedirs(save_path, exist_ok=True)
 
     # return entry or metrics as needed
     return entry
-def run_testing(dataset_id: int):
-    file_path = f"storage/datasets/{dataset_id}/test.csv"
+async def run_testing(dataset_id: int,project_name:str):
+    file_path = f"storage/datasets/{project_name}/{dataset_id}/test.csv"
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Test file for dataset {dataset_id} not found")
+        raise FileNotFoundError(f"Test file for dataset {project_name} not found")
 
-    cmd = ["python", "scripts/test.py", "--data", file_path, "--dataset_id", str(dataset_id)]
+    cmd = ["python", "scripts/test.py", "--data", file_path, "--dataset_id", str(dataset_id),"--project_name",project_name]
     stdout_lines = []
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as process:
         for line in process.stdout:
@@ -92,22 +93,22 @@ def run_testing(dataset_id: int):
     metrics = extract_metrics_from_stdout(stdout_text)
     entry= {
         "timestamp": datetime.now().isoformat(),
-        "dataset_id": dataset_id,
+        "project_name": project_name,
         "metrics": metrics
     }
-    history_dir = f"storage/test/history/{dataset_id}"
+    history_dir = f"storage/test/history/{project_name}/{dataset_id}"
     os.makedirs(history_dir, exist_ok=True)
     with open(os.path.join(history_dir, "history.json"), "w") as f:
         f.write(json.dumps(entry) + "\n")
 
-    save_path = f"storage/model/{dataset_id}"
+    save_path = f"storage/model/{project_name}/{dataset_id}"
     os.makedirs(save_path, exist_ok=True)
 
     return entry
 
-def load_training_history(dataset_id):
-    train_history_root = "storage/train/history"
-    history_file = os.path.join(train_history_root, f"{dataset_id}/history.json")
+def load_training_history(dataset_id, project_name: str):
+    train_history_root = "storage/train/history/"
+    history_file = os.path.join(train_history_root, f"{project_name}/{dataset_id}/history.json")
     if not os.path.exists(history_file):
         return f"❌ No history file found for dataset {dataset_id}."
     
@@ -117,9 +118,9 @@ def load_training_history(dataset_id):
     except json.JSONDecodeError:
         return f"❌ Failed to parse history file for dataset {dataset_id} (invalid JSON)."
     
-def load_testing_history(dataset_id: int):
-    test_history_root = "storage/test/history"
-    history_file = os.path.join(test_history_root, f"{dataset_id}/history.json")
+def load_testing_history(dataset_id: int,project_name:str):
+    test_history_root = "storage/test/history/"
+    history_file = os.path.join(test_history_root, f"{project_name}/{dataset_id}/history.json")
     if not os.path.exists(history_file):
         return f"❌ No history file found for dataset {dataset_id}."
     

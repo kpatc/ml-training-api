@@ -11,11 +11,12 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument('--data', type=str)
 parser.add_argument('--dataset_id', type=int)
+parser.add_argument('--project_name', type=str)
 parser.add_argument('--task', type=str, choices=['similarity', 'inference'], default='similarity')
 args = parser.parse_args()
 
-model_path = f"storage/model/{args.dataset_id}/model.pkl"
-vectorizer_path = f"storage/model/{args.dataset_id}/vectorizer.pkl"
+model_path = f"storage/model/{args.project_name}/{args.dataset_id}/model.pkl"
+vectorizer_path = f"storage/model/{args.project_name}/{args.dataset_id}/vectorizer.pkl"
 
 if not os.path.exists(model_path) or not os.path.exists(vectorizer_path):
     raise FileNotFoundError("Model or vectorizer not found.")
@@ -25,7 +26,7 @@ vectorizer = joblib.load(vectorizer_path)
 
 
 # model_path = f"storage/model/{args.dataset_id}/model"
-file_path = f"storage/datasets/{args.dataset_id}/test.csv"
+file_path = f"storage/datasets/{args.project_name}/{args.dataset_id}/test.csv"
 
 # if not os.path.exists(file_path):
 #     raise FileNotFoundError(f"Test file for dataset {args.dataset_id} not found")
